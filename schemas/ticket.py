@@ -5,7 +5,7 @@ from typing import Optional, Literal
 class ServiceTicketBase(BaseModel):
     farmer_id: UUID
     issue_category: Literal["soil", "crop", "water", "erosion"]
-    status: Literal["pending", "dispatched", "resolved", "closed"]
+    status: Literal["pending", "cancelled", "dispatched", "resolved"]
     description: str
     expert_id: Optional[UUID] = None
 

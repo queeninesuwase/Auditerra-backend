@@ -1,7 +1,7 @@
-from sqlalchemy import Column, Numeric, TIMESTAMP, text
+import uuid
+from sqlalchemy import Column, Numeric, String, TIMESTAMP, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-import uuid
 
 from database import Base
 
@@ -13,8 +13,11 @@ class Location(Base):
     longitude = Column(Numeric(11, 8), nullable=False)
     captured_at = Column(TIMESTAMP(timezone=True), nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("NOW()"))
+    county = Column(String(255), nullable=False)
+    country_code = Column(String(2), nullable=True)
+    region_name = Column(String(100), nullable=True)
+    postal_code = Column(String(20), nullable=True)
 
     
-    field_experts = relationship("FieldExpert", back_populates="location")
-    supervisors = relationship("InstitutionalSupervisor", back_populates="location")
+    staff_members = relationship("InstitutionStaff", back_populates="location")
     diagnostic_logs = relationship("DiagnosticLog", back_populates="location")

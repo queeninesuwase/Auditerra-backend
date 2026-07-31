@@ -1,7 +1,7 @@
+import uuid
 from sqlalchemy import Column, TEXT, TIMESTAMP, ForeignKey, text
 from sqlalchemy.dialects.postgresql import UUID, ENUM
 from sqlalchemy.orm import relationship
-import uuid
 
 from database import Base
 
@@ -10,7 +10,7 @@ class AIRecommendation(Base):
 
     recommendation_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     log_id = Column(UUID(as_uuid=True), ForeignKey("diagnostic_log.log_id"), nullable=False)
-    expert_id = Column(UUID(as_uuid=True), ForeignKey("field_expert.expert_id"), nullable=False)
+    expert_id = Column(UUID(as_uuid=True), ForeignKey("institution_staff.staff_id"), nullable=False)
     farmer_id = Column(UUID(as_uuid=True), ForeignKey("farmer.farmer_id"), nullable=False)
     
     recommended_text = Column(TEXT, nullable=False)
@@ -28,5 +28,5 @@ class AIRecommendation(Base):
 
     
     diagnostic_log = relationship("DiagnosticLog", back_populates="recommendation")
-    expert = relationship("FieldExpert", back_populates="recommendations")
+    expert = relationship("InstitutionStaff", back_populates="recommendations")
     farmer = relationship("Farmer", back_populates="recommendations")

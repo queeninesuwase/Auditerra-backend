@@ -18,7 +18,6 @@ def list_farmers(db: Session):
     return farmer_repository.get_all(db)
 
 def create_farmer(db: Session, data: FarmerCreate):
-    
     existing = farmer_repository.get_by_phone(db, data.phone)
     if existing:
         raise HTTPException(
@@ -32,6 +31,5 @@ def update_farmer(db: Session, farmer_id: UUID, data: FarmerUpdate):
     return farmer_repository.update(db, farmer, data.model_dump(exclude_unset=True))
 
 def delete_farmer(db: Session, farmer_id: UUID):
-    
     farmer = get_farmer(db, farmer_id)
     farmer_repository.delete(db, farmer)

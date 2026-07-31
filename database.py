@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 
-database_url = "postgresql+psycopg://postgres:postgres@localhost:5432/auditerra_db"
+database_url = "postgresql+psycopg://postgres:postgres@localhost:5432/auditerra_database"
 
 engine = create_engine(database_url, echo=False, future=True)
 

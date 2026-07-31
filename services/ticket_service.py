@@ -11,7 +11,7 @@ def get_ticket(db: Session, ticket_id: UUID):
     if not ticket:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Service ticket record not found"
+            detail="Service request ticket not found"
         )
     return ticket
 
@@ -19,16 +19,15 @@ def list_tickets(db: Session):
     return ticket_repository.get_all(db)
 
 def create_ticket(db: Session, data: ServiceTicketCreate):
-
     farmer = farmer_repository.get(db, data.farmer_id)
     if not farmer:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Cannot open ticket: Farmer account profile not found"
+            detail="Cannot open ticket: Linked farmer account profile not found"
         )
         
     payload = data.model_dump()
-    payload["status"] = "pending" 
+    payload["status"] = "pending"
     return ticket_repository.create(db, payload)
 
 def update_ticket(db: Session, ticket_id: UUID, data: ServiceTicketUpdate):

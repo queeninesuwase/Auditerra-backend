@@ -10,7 +10,7 @@ def get_location(db: Session, location_id: UUID):
     if not location:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Location coordinate entry not found"
+            detail="Location entry not found"
         )
     return location
 

@@ -10,7 +10,7 @@ def get_recommendation(db: Session, recommendation_id: UUID):
     if not rec:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
-            detail="AI prescription summary entry not found"
+            detail="AI prescription recommendation summary entry not found"
         )
     return rec
 
@@ -21,8 +21,6 @@ def create_recommendation(db: Session, data: AIRecommendationCreate):
     payload = data.model_dump()
     payload["expert_recommendation_delivery"] = "pending"
     payload["sms_delivery_status"] = "pending"
-    
-    
     return recommendation_repository.create(db, payload)
 
 def update_recommendation(db: Session, recommendation_id: UUID, data: AIRecommendationUpdate):

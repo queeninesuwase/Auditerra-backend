@@ -1,29 +1,26 @@
 from fastapi import FastAPI
 from database import Base, engine
 
-
-from models import expert, farmer, location, log, recommendation, supervisor, ticket
+from models import farmer, staff, location, ticket, log, recommendation
 
 
 from routers import (
-    expert as expert_router,
     farmer as farmer_router,
+    staff as staff_router,
     location as location_router,
+    ticket as ticket_router,
     log as log_router,
     recommendation as recommendation_router,
-    supervisor as supervisor_router,
-    ticket as ticket_router,
 )
 
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Auditerra API", version="1")
+app = FastAPI(title="Audittera Agricultural Gateway API", version="2")
 
 
 app.include_router(farmer_router.router)
-app.include_router(expert_router.router)
-app.include_router(supervisor_router.router)
+app.include_router(staff_router.router)
 app.include_router(location_router.router)
 app.include_router(ticket_router.router)
 app.include_router(log_router.router)
@@ -31,4 +28,6 @@ app.include_router(recommendation_router.router)
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to the Audittera Soil Diagnostics and Restoration API Gateway"}
+    return {
+        "message": "Welcome to Audittera Soil Diagnostics and Restoration Platform Gateway Engine"
+    }
