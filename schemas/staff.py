@@ -14,7 +14,7 @@ class InstitutionStaffBase(BaseModel):
     location_id: Optional[UUID] = None
 
 class InstitutionStaffCreate(InstitutionStaffBase):
-    password: str  # Raw password captured during registration
+    password: str 
 
 class InstitutionStaffRead(InstitutionStaffBase):
     model_config = ConfigDict(from_attributes=True)

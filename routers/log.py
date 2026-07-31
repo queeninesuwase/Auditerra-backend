@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from uuid import UUID
+from routers.deps import get_current_user
 
 from database import get_db
 from schemas.log import DiagnosticLogCreate, DiagnosticLogRead, DiagnosticLogUpdate
@@ -17,7 +18,11 @@ def get_log(log_id: UUID, db: Session = Depends(get_db)):
     return log_service.get_log(db, log_id)
 
 @router.post("/", response_model=DiagnosticLogRead, status_code=status.HTTP_201_CREATED)
-def create_log(data: DiagnosticLogCreate, db: Session = Depends(get_db)):
+def create_log(
+    data: DiagnosticLogCreate, 
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user) 
+):
     return log_service.create_log(db, data)
 
 @router.put("/{log_id}", response_model=DiagnosticLogRead)

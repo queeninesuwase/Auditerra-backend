@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from uuid import UUID
+from core.security import hash_password
 
 from repositories.staff import staff_repository
 from schemas.staff import InstitutionStaffCreate, InstitutionStaffUpdate
@@ -24,11 +25,12 @@ def create_staff(db: Session, data: InstitutionStaffCreate):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="A staff member with this email is already registered"
         )
-    
+        
     payload = data.model_dump()
     raw_password = payload.pop("password")
     
-    payload["password_hash"] = f"hashed_{raw_password}"
+
+    payload["password_hash"] = hash_password(raw_password)
     
     return staff_repository.create(db, payload)
 
