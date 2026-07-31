@@ -13,6 +13,7 @@ from fastapi import HTTPException, status
 
 from core.security import hash_password, verify_password
 from repositories.staff import staff_repository
+from repositories.user import user_repository
 from repositories.farmer import farmer_repository
 from repositories.ticket import ticket_repository
 from repositories.log import log_repository
@@ -47,45 +48,88 @@ def get_experts_by_county(db: Session, county: str):
 
 
 def create_staff(db: Session, data: InstitutionStaffCreate):
-    existing = staff_repository.get_by_email(db, data.email)
-    if existing:
+    existing_email = user_repository.get_by_email(db, data.email)
+    if existing_email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A staff member with this email is already registered"
+            detail="A user with this email is already registered"
         )
-    payload = data.model_dump()
-    raw_password = payload.pop("password")
-    payload["password_hash"] = hash_password(raw_password)
-    if payload.get("role") not in ("institutional_supervisor", "field_expert"):
+    existing_phone = user_repository.get_by_phone(db, data.phone)
+    if existing_phone:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A user with this phone number is already registered"
+        )
+    if data.role not in ("institutional_supervisor", "field_expert"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid role. Must be 'institutional_supervisor' or 'field_expert'"
         )
-    return staff_repository.create(db, payload)
+
+    user_data = {
+        "name": data.name,
+        "phone": data.phone,
+        "email": data.email,
+        "county": data.county,
+        "preferred_language": data.preferred_language,
+        "role": data.role
+    }
+    user = user_repository.create(db, user_data)
+
+    staff_data = {
+        "staff_id": user.user_id,
+        "institution_name": data.institution_name,
+        "expertise_area": data.expertise_area
+    }
+    return staff_repository.create(db, staff_data)
 
 
 def update_staff(db: Session, staff_id: UUID, data: InstitutionStaffUpdate):
     staff = get_staff(db, staff_id)
-    payload = data.model_dump(exclude_unset=True)
-    if "role" in payload and payload["role"] not in ("institutional_supervisor", "field_expert"):
+    user_updates = {}
+    profile_updates = {}
+
+    for field, value in data.model_dump(exclude_unset=True).items():
+        if field in ("name", "phone", "email", "county", "preferred_language", "role"):
+            user_updates[field] = value
+        else:
+            profile_updates[field] = value
+
+    if "role" in user_updates and user_updates["role"] not in ("institutional_supervisor", "field_expert"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid role value"
         )
-    return staff_repository.update(db, staff, payload)
+
+    if user_updates:
+        user_repository.update(db, staff.user, user_updates)
+    if profile_updates:
+        staff_repository.update(db, staff, profile_updates)
+
+    db.refresh(staff)
+    return staff
 
 
 def delete_staff(db: Session, staff_id: UUID):
     staff = get_staff(db, staff_id)
+    user = staff.user
     staff_repository.delete(db, staff)
+    if user:
+        user_repository.delete(db, user)
 
 
 def authenticate_staff(db: Session, email: str, password: str):
-    staff = staff_repository.get_by_email(db, email)
-    if not staff or not verify_password(password, staff.password_hash):
+    user = user_repository.get_by_email(db, email)
+    if not user or not user.password_hash or not verify_password(password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
+        )
+    staff = staff_repository.get(db, user.user_id)
+    if not staff:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Staff profile not found"
         )
     staff_repository.update(db, staff, {"last_login": datetime.now(timezone.utc)})
     return staff

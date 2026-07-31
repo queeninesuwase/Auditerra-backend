@@ -2,6 +2,7 @@
 from sqlalchemy.orm import Session
 from uuid import UUID
 from models.staff import InstitutionStaff
+from models.user import User
 
 
 class StaffRepository:
@@ -12,15 +13,15 @@ class StaffRepository:
         return db.get(InstitutionStaff, staff_id)
 
     def get_by_email(self, db: Session, email: str):
-        return db.query(InstitutionStaff).filter(InstitutionStaff.email == email).first()
+        return db.query(InstitutionStaff).join(User).filter(User.email == email).first()
 
     def get_by_role(self, db: Session, role: str):
-        return db.query(InstitutionStaff).filter(InstitutionStaff.role == role).all()
+        return db.query(InstitutionStaff).join(User).filter(User.role == role).all()
 
     def get_by_county_and_role(self, db: Session, county: str, role: str):
-        return db.query(InstitutionStaff).filter(
-            InstitutionStaff.assigned_county == county,
-            InstitutionStaff.role == role
+        return db.query(InstitutionStaff).join(User).filter(
+            User.county == county,
+            User.role == role
         ).all()
 
     def get_all(self, db: Session):

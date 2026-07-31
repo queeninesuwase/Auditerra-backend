@@ -1,5 +1,4 @@
 
-
 import uuid
 from sqlalchemy import Column, Numeric, LargeBinary, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID

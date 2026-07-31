@@ -5,6 +5,7 @@ from uuid import UUID
 import random
 
 from repositories.farmer import farmer_repository
+from repositories.user import user_repository
 from repositories.ticket import ticket_repository
 from schemas.farmer import FarmerCreate, FarmerUpdate
 from schemas.ticket import ServiceTicketCreate
@@ -21,13 +22,13 @@ def get_farmer(db: Session, farmer_id: UUID):
 
 
 def get_farmer_by_phone(db: Session, phone: str):
-    farmer = farmer_repository.get_by_phone(db, phone)
-    if not farmer:
+    user = user_repository.get_by_phone(db, phone)
+    if not user or user.role != "farmer":
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No farmer registered with this phone number"
         )
-    return farmer
+    return farmer_repository.get(db, user.user_id)
 
 
 def list_farmers(db: Session):
@@ -35,25 +36,58 @@ def list_farmers(db: Session):
 
 
 def create_farmer(db: Session, data: FarmerCreate):
-    existing = farmer_repository.get_by_phone(db, data.phone)
+    existing = user_repository.get_by_phone(db, data.phone)
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A farmer with this phone number is already registered"
+            detail="A user with this phone number is already registered"
         )
-    payload = data.model_dump()
-    payload["unique_handshake_code"] = _generate_unique_handshake(db)
-    return farmer_repository.create(db, payload)
+
+    user_data = {
+        "name": data.name,
+        "phone": data.phone,
+        "county": data.county,
+        "preferred_language": data.preferred_language,
+        "role": "farmer"
+    }
+    user = user_repository.create(db, user_data)
+
+    farmer_data = {
+        "farmer_id": user.user_id,
+        "unique_handshake_code": _generate_unique_handshake(db),
+        "sub_county": data.sub_county,
+        "village": data.village,
+        "landmark": data.landmark
+    }
+    return farmer_repository.create(db, farmer_data)
 
 
 def update_farmer(db: Session, farmer_id: UUID, data: FarmerUpdate):
     farmer = get_farmer(db, farmer_id)
-    return farmer_repository.update(db, farmer, data.model_dump(exclude_unset=True))
+    user_updates = {}
+    profile_updates = {}
+
+    for field, value in data.model_dump(exclude_unset=True).items():
+        if field in ("name", "phone", "county", "preferred_language"):
+            user_updates[field] = value
+        else:
+            profile_updates[field] = value
+
+    if user_updates:
+        user_repository.update(db, farmer.user, user_updates)
+    if profile_updates:
+        farmer_repository.update(db, farmer, profile_updates)
+
+    db.refresh(farmer)
+    return farmer
 
 
 def delete_farmer(db: Session, farmer_id: UUID):
     farmer = get_farmer(db, farmer_id)
+    user = farmer.user
     farmer_repository.delete(db, farmer)
+    if user:
+        user_repository.delete(db, user)
 
 
 def report_issue(db: Session, farmer_id: UUID, issue_category: str, description: str):

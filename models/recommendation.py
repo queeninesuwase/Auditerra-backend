@@ -16,8 +16,16 @@ class AIRecommendation(Base):
     farmer_id = Column(UUID(as_uuid=True), ForeignKey("farmer.farmer_id"), nullable=False)
     staff_id = Column(UUID(as_uuid=True), ForeignKey("institution_staff.staff_id"), nullable=False)
     recommended_text = Column(Text, nullable=False)
-    expert_recommendation_delivery = Column(Enum("pending", "delivered", "failed", name="expert_delivery_status"), nullable=False, default="pending")
-    sms_delivery_status = Column(Enum("pending", "delivered", "failed", name="sms_delivery_status"), nullable=False, default="pending")
+    expert_recommendation_delivery = Column(
+        Enum("pending", "delivered", "failed", name="expert_delivery_status"),
+        nullable=False,
+        default="pending"
+    )
+    sms_delivery_status = Column(
+        Enum("pending", "delivered", "failed", name="sms_delivery_status"),
+        nullable=False,
+        default="pending"
+    )
     created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
 
     log = relationship("DiagnosticLog", back_populates="recommendation")

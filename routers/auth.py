@@ -1,16 +1,15 @@
+
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-import jwt
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from uuid import UUID
 
 from database import get_db
+from repositories.user import user_repository
 from repositories.staff import staff_repository
-from core.security import verify_password, create_access_token, SECRET_KEY, ALGORITHM
+from core.security import verify_password, create_access_token
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 _login_attempts = {}
 
@@ -48,9 +47,8 @@ def login_staff(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
             detail=f"Account locked. Try again after {locked_until.isoformat()}"
         )
 
-    staff = staff_repository.get_by_email(db, form_data.username)
-
-    if not staff or not verify_password(form_data.password, staff.password_hash):
+    user = user_repository.get_by_email(db, form_data.username)
+    if not user or not user.password_hash or not verify_password(form_data.password, user.password_hash):
         lock_time = _record_failed_attempt(form_data.username)
         if lock_time:
             raise HTTPException(
@@ -63,45 +61,10 @@ def login_staff(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         )
 
     _clear_attempts(form_data.username)
-    staff_repository.update(db, staff, {"last_login": datetime.now(timezone.utc)})
 
-    token_data = {"sub": str(staff.staff_id), "role": staff.role.value}
-    token = create_access_token(data=token_data)
+    staff = staff_repository.get(db, user.user_id)
+    if staff:
+        staff_repository.update(db, staff, {"last_login": datetime.now(timezone.utc)})
 
+    token = create_access_token(data={"sub": str(user.user_id), "role": user.role})
     return {"access_token": token, "token_type": "bearer"}
-
-
-async def get_current_staff(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        staff_id: str = payload.get("sub")
-        if staff_id is None:
-            raise credentials_exception
-    except jwt.PyJWTError: 
-        raise credentials_exception
-
-    staff = staff_repository.get(db, staff_id)
-    if staff is None:
-        raise credentials_exception
-    return staff
-
-
-def require_role(role: str):
-    def role_checker(current_staff = Depends(get_current_staff)):
-        if current_staff.role.value != role:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Operation requires {role} privileges"
-            )
-        return current_staff
-    return role_checker
-
-
-require_supervisor = require_role("institutional_supervisor")
-require_field_expert = require_role("field_expert")

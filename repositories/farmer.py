@@ -2,6 +2,7 @@
 from sqlalchemy.orm import Session
 from uuid import UUID
 from models.farmer import Farmer
+from models.user import User
 
 
 class FarmerRepository:
@@ -12,7 +13,7 @@ class FarmerRepository:
         return db.get(Farmer, farmer_id)
 
     def get_by_phone(self, db: Session, phone: str):
-        return db.query(Farmer).filter(Farmer.phone == phone).first()
+        return db.query(Farmer).join(User).filter(User.phone == phone).first()
 
     def get_by_handshake(self, db: Session, code: str):
         return db.query(Farmer).filter(Farmer.unique_handshake_code == code).first()
