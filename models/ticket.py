@@ -1,30 +1,25 @@
+
+
 import uuid
-from sqlalchemy import Column, String, TEXT, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID, ENUM
+from datetime import datetime, timezone
+from sqlalchemy import Column, String, Enum, Text, ForeignKey, DateTime
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from database import Base
+
 
 class ServiceTicket(Base):
     __tablename__ = "service_ticket"
 
     ticket_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     farmer_id = Column(UUID(as_uuid=True), ForeignKey("farmer.farmer_id"), nullable=False)
-    # References staff_id from the unified staff table
-    expert_id = Column(UUID(as_uuid=True), ForeignKey("institution_staff.staff_id"), nullable=True)
-    
-    issue_category = Column(
-        ENUM("soil", "crop", "water", "erosion", name="issue_category_enum"), 
-        nullable=False
-    )
-    status = Column(
-        ENUM("pending", "cancelled", "dispatched", "resolved", name="ticket_status_enum"), 
-        nullable=False, 
-        default="pending"
-    )
-    description = Column(TEXT, nullable=False)
+    staff_id = Column(UUID(as_uuid=True), ForeignKey("institution_staff.staff_id"), nullable=True)
+    issue_category = Column(Enum("soil", "crop", "water", "erosion", name="issue_category"), nullable=False)
+    status = Column(Enum("pending", "dispatched", "resolved", "cancelled", name="ticket_status"), nullable=False, default="pending")
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
 
-    
     farmer = relationship("Farmer", back_populates="service_tickets")
-    expert = relationship("InstitutionStaff", back_populates="service_tickets")
-    diagnostic_log = relationship("DiagnosticLog", back_populates="service_ticket", uselist=False)
+    expert = relationship("InstitutionStaff", back_populates="tickets")
+    log = relationship("DiagnosticLog", back_populates="ticket", uselist=False)

@@ -1,9 +1,11 @@
+
 import uuid
 from sqlalchemy import Column, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from database import Base
+
 
 class Farmer(Base):
     __tablename__ = "farmer"
@@ -18,6 +20,5 @@ class Farmer(Base):
     landmark = Column(String(20), nullable=False)
     preferred_language = Column(String(10), nullable=False)
 
-    
     service_tickets = relationship("ServiceTicket", back_populates="farmer")
     recommendations = relationship("AIRecommendation", back_populates="farmer")

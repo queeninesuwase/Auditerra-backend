@@ -1,6 +1,8 @@
+
 from sqlalchemy.orm import Session
 from uuid import UUID
 from models.location import Location
+
 
 class LocationRepository:
     def __init__(self):
@@ -8,7 +10,13 @@ class LocationRepository:
 
     def get(self, db: Session, location_id: UUID):
         return db.get(Location, location_id)
-    
+
+    def get_by_county(self, db: Session, county: str):
+        return db.query(Location).filter(Location.county == county).all()
+
+    def get_by_staff(self, db: Session, staff_id: UUID):
+        return db.query(Location).filter(Location.staff_id == staff_id).all()
+
     def get_all(self, db: Session):
         return db.query(Location).all()
 
@@ -29,5 +37,6 @@ class LocationRepository:
     def delete(self, db: Session, db_obj: Location):
         db.delete(db_obj)
         db.commit()
+
 
 location_repository = LocationRepository()

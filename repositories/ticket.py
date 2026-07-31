@@ -1,19 +1,27 @@
+
 from sqlalchemy.orm import Session
 from uuid import UUID
 from models.ticket import ServiceTicket
 
-class ServiceTicketRepository:
+
+class TicketRepository:
     def __init__(self):
         self.model = ServiceTicket
 
     def get(self, db: Session, ticket_id: UUID):
         return db.get(ServiceTicket, ticket_id)
-    
-    def get_all(self, db: Session):
-        return db.query(ServiceTicket).all()
 
     def get_by_farmer(self, db: Session, farmer_id: UUID):
         return db.query(ServiceTicket).filter(ServiceTicket.farmer_id == farmer_id).all()
+
+    def get_by_staff(self, db: Session, staff_id: UUID):
+        return db.query(ServiceTicket).filter(ServiceTicket.staff_id == staff_id).all()
+
+    def get_by_status(self, db: Session, status: str):
+        return db.query(ServiceTicket).filter(ServiceTicket.status == status).all()
+
+    def get_all(self, db: Session):
+        return db.query(ServiceTicket).all()
 
     def create(self, db: Session, data: dict):
         ticket = ServiceTicket(**data)
@@ -33,4 +41,5 @@ class ServiceTicketRepository:
         db.delete(db_obj)
         db.commit()
 
-ticket_repository = ServiceTicketRepository()
+
+ticket_repository = TicketRepository()

@@ -1,5 +1,7 @@
+
 from pydantic import BaseModel, ConfigDict
 from uuid import UUID
+
 
 class FarmerBase(BaseModel):
     name: str
@@ -11,13 +13,16 @@ class FarmerBase(BaseModel):
     landmark: str
     preferred_language: str
 
+
 class FarmerCreate(FarmerBase):
     pass
 
+
 class FarmerRead(FarmerBase):
     model_config = ConfigDict(from_attributes=True)
-    
+
     farmer_id: UUID
+
 
 class FarmerUpdate(FarmerBase):
     farmer_id: UUID

@@ -1,26 +1,31 @@
+
+from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 from uuid import UUID
-from datetime import datetime
-from typing import Optional, Literal
 
-class InstitutionStaffBase(BaseModel):
-    role: Literal["institutional_supervisor", "field_expert"]
+
+class StaffBase(BaseModel):
+    role: str
+    location_id: UUID | None = None
     name: str
     email: str
     phone: str
     institution_name: str
     assigned_county: str
-    expertise_area: Optional[list[str]] = None
-    location_id: Optional[UUID] = None
+    expertise_area: list[str] | None = None
+    preferred_language: str | None = None
 
-class InstitutionStaffCreate(InstitutionStaffBase):
-    password: str 
 
-class InstitutionStaffRead(InstitutionStaffBase):
+class InstitutionStaffCreate(StaffBase):
+    password: str
+
+
+class InstitutionStaffRead(StaffBase):
     model_config = ConfigDict(from_attributes=True)
-    
-    staff_id: UUID
-    last_login: Optional[datetime] = None
 
-class InstitutionStaffUpdate(InstitutionStaffBase):
+    staff_id: UUID
+    last_login: datetime | None = None
+
+
+class InstitutionStaffUpdate(StaffBase):
     staff_id: UUID

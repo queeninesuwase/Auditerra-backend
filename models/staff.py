@@ -1,6 +1,6 @@
 import uuid
 import enum
-from sqlalchemy import Column, String, TIMESTAMP, ForeignKey, Enum, ARRAY
+from sqlalchemy import Column, String, DateTime, ForeignKey, Enum, ARRAY
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -23,9 +23,9 @@ class InstitutionStaff(Base):
     institution_name = Column(String(255), nullable=False)
     assigned_county = Column(String(255), nullable=False)
     expertise_area = Column(ARRAY(String(100)), nullable=True)
-    last_login = Column(TIMESTAMP(timezone=True), nullable=True)
+    last_login = Column(DateTime(timezone=True), nullable=True)
 
-    
+   
     location = relationship("Location", back_populates="staff_members")
     service_tickets = relationship("ServiceTicket", back_populates="expert")
     diagnostic_logs = relationship("DiagnosticLog", back_populates="expert")

@@ -1,6 +1,8 @@
+
 from sqlalchemy.orm import Session
 from uuid import UUID
 from models.farmer import Farmer
+
 
 class FarmerRepository:
     def __init__(self):
@@ -8,10 +10,13 @@ class FarmerRepository:
 
     def get(self, db: Session, farmer_id: UUID):
         return db.get(Farmer, farmer_id)
-    
+
     def get_by_phone(self, db: Session, phone: str):
         return db.query(Farmer).filter(Farmer.phone == phone).first()
-    
+
+    def get_by_handshake(self, db: Session, code: str):
+        return db.query(Farmer).filter(Farmer.unique_handshake_code == code).first()
+
     def get_all(self, db: Session):
         return db.query(Farmer).all()
 
@@ -32,5 +37,6 @@ class FarmerRepository:
     def delete(self, db: Session, db_obj: Farmer):
         db.delete(db_obj)
         db.commit()
+
 
 farmer_repository = FarmerRepository()

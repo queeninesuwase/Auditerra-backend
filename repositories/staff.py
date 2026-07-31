@@ -1,17 +1,28 @@
+
 from sqlalchemy.orm import Session
 from uuid import UUID
 from models.staff import InstitutionStaff
 
-class InstitutionStaffRepository:
+
+class StaffRepository:
     def __init__(self):
         self.model = InstitutionStaff
 
     def get(self, db: Session, staff_id: UUID):
         return db.get(InstitutionStaff, staff_id)
-    
+
     def get_by_email(self, db: Session, email: str):
         return db.query(InstitutionStaff).filter(InstitutionStaff.email == email).first()
-    
+
+    def get_by_role(self, db: Session, role: str):
+        return db.query(InstitutionStaff).filter(InstitutionStaff.role == role).all()
+
+    def get_by_county_and_role(self, db: Session, county: str, role: str):
+        return db.query(InstitutionStaff).filter(
+            InstitutionStaff.assigned_county == county,
+            InstitutionStaff.role == role
+        ).all()
+
     def get_all(self, db: Session):
         return db.query(InstitutionStaff).all()
 
@@ -33,4 +44,5 @@ class InstitutionStaffRepository:
         db.delete(db_obj)
         db.commit()
 
-staff_repository = InstitutionStaffRepository()
+
+staff_repository = StaffRepository()

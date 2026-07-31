@@ -1,23 +1,27 @@
+
+from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 from uuid import UUID
-from typing import Optional, Literal
+
 
 class ServiceTicketBase(BaseModel):
     farmer_id: UUID
-    issue_category: Literal["soil", "crop", "water", "erosion"]
-    status: Literal["pending", "cancelled", "dispatched", "resolved"]
-    description: str
-    expert_id: Optional[UUID] = None
+    staff_id: UUID | None = None
+    issue_category: str
+    status: str
+    description: str | None = None
 
-class ServiceTicketCreate(BaseModel):
-    farmer_id: UUID
-    issue_category: Literal["soil", "crop", "water", "erosion"]
-    description: str
+
+class ServiceTicketCreate(ServiceTicketBase):
+    pass
+
 
 class ServiceTicketRead(ServiceTicketBase):
     model_config = ConfigDict(from_attributes=True)
-    
+
     ticket_id: UUID
+    created_at: datetime
+
 
 class ServiceTicketUpdate(ServiceTicketBase):
     ticket_id: UUID
